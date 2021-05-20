@@ -145,11 +145,11 @@ void node_print(s_t* node)
 
 }
 
-void list_print(s_t* src, size_t size)
+void list_print(s_t** src, size_t size)
 {
-	for (s_t* cur = src; cur < src + size && *(char*)cur; cur++)
+	for (s_t* cur = src; cur < src + size && *cur; cur++)
 	{
-		node_print(cur);
+		node_print(*cur);
 	}
 }
 
@@ -160,32 +160,32 @@ void node_free(s_t* node)
 	free (node);
 }
 
-void studs_free(s_t* list, size_t size)
+void studs_free(s_t** list, size_t size)
 {
-	for (s_t* cur = list; cur < list + size && *(char*)cur; cur++)
+	for (s_t* cur = list; cur < list + size && *cur; cur++)
 	{
-		node_free (cur);
+		node_free (*cur);
 	}
 	free (list);
 }
 
-size_t delete(s_t* root, s_t* node, size_t size)
+size_t delete(s_t** root, s_t** node, size_t size)
 {
 	node_free (node);
 	s_t* cur;
 	for (cur = node; cur < root + size && *(char*)cur; cur++)
 	{
-		*cur = *(cur + 1);
+		memcpy(*cur, *cur + sizeof(**cur), sizeof(**cur));
 	}
-	memset (cur, 0, sizeof(*cur));
+	node_free (cur);
 	return size - 1;
 }
 
-s_t* list_findByFIO(s_t* list, const char* fio, size_t size)
+s_t** list_findByFIO(s_t** list, const char* fio, size_t size)
 {
 	printf("%d:: HERE\n", __LINE__);
 	s_t* cur;
-	for (cur = list; cur < list + size && *(char*)cur && strcmp(fio, cur->fio); cur++);
+	for (cur = list; cur < list + size && *cur && strcmp(fio, cur->fio); cur++);
 	if (!cur)
 	{
 		return NULL;
@@ -193,23 +193,24 @@ s_t* list_findByFIO(s_t* list, const char* fio, size_t size)
 	return cur;
 }
 
-s_t* list_printByGroup(s_t* list, const char* group, size_t size)
+s_t* list_printByGroup(s_t** list, const char* group, size_t size)
 {
-	for (s_t* cur = list; cur < list + size && *(char*)cur; cur++)
+	for (s_t** cur = list; cur < list + size && *cur; cur++)
 	{
-		if (!strcmp(group, cur->group))
+		if (!strcmp(group, (*cur)->group))
 		{
-			node_print(cur);
+			node_print(*cur);
 		}
 	}
 }
 
-s_t* list_write(s_t* list, const char* filename, size_t size)
+void list_write(s_t** list, const char* filename, size_t size)
 {
 	FILE* file = fopen(filename, "w");
 
-	for (s_t* cur = list; cur < list + size && *(char*)cur; cur++)
+	for (s_t** scur = list; scur < list + size && *scur; scur++)
 	{
+		s_t* cur = *scur;
 		fwrite(cur->fio, 1, strlen(cur->fio), file);
 		fputc(',', file);
 		fwrite(cur->group, 1, strlen(cur->group), file);
