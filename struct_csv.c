@@ -40,18 +40,20 @@ int my_atoi(char* s, size_t size)
 	return ret;
 }
 
-s_t* parse_csv(char* buff, size_t* size)
+s_t** parse_csv(char* buff, size_t* size)
 {
 	char* next = strchr(buff, ';');
 	size_t sizelen = next - buff;
 	*size = my_atoi(buff, sizelen);
 	char* bcur = next + 1;
 
-	s_t* parsed = (s_t*)calloc(size, sizeof(*parsed));
+	s_t** parsed = (s_t**)calloc(size, sizeof(*parsed));
 
 	size_t ind = 0;
-	for (s_t* scur = parsed; ind < size; ind++, scur++)
+	for (s_t** cur = parsed; ind < size; ind++, cur++)
 	{
+		*cur = (s_t*)calloc(1, sizeof(**cur));	
+		s_t* scur = cur;
 		enum Element el = FIO;
 		int end = 0;
 		while (!end)
@@ -111,7 +113,7 @@ s_t* parse_csv(char* buff, size_t* size)
 	return parsed;
 }
 
-s_t* read_csv(char* filename, size_t* size)
+s_t** read_csv(char* filename, size_t* size)
 {
 	FILE* file = fopen(filename, "r");
 	if (!file)
@@ -127,7 +129,7 @@ s_t* read_csv(char* filename, size_t* size)
 	fread(buff, t, 1, file);
 	buff[t] = 0;
 
-	s_t* ret = parse_csv(buff, size);
+	s_t** ret = parse_csv(buff, size);
 
 	return ret;
 }
@@ -155,6 +157,7 @@ void node_free(s_t* node)
 {
 	free (node->fio);
 	free (node->group);
+	free (node);
 }
 
 void studs_free(s_t* list, size_t size)
@@ -235,7 +238,7 @@ enum Action
 
 int main()
 {
-	s_t* students;
+	s_t** students;
 
 	s_t student = {"N W D", "B08", {4, 3, 2, 1}};
 
